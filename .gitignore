@@ -224,3 +224,4 @@ final_cleaned_dataset.csv
 docs
 vscode
 .local/
+.vscode*/
