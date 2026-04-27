@@ -1,0 +1,151 @@
+================================================================================
+DIMENSIONALITY REDUCTION FOR SOC DATA CLASSIFICATION
+Multi-Stage Hybrid Dimensionality Reduction (MSHDR)
+================================================================================
+
+================================================================================
+PHASE 1: DATA LOADING AND ANALYSIS
+================================================================================
+
+Dataset Shape: (46662, 15)
+Total Features: 14
+Missing Values: 0
+
+Class Distribution:
+label
+1    29506
+0    17156
+Name: count, dtype: int64
+Class Distribution (%):
+label
+1    63.23
+0    36.77
+Name: proportion, dtype: float64
+
+Train Set Size: 37329
+Test Set Size: 9333
+
+================================================================================
+PHASE 2: BASELINE DIMENSIONALITY REDUCTION METHODS
+================================================================================
+
+--- PCA (Principal Component Analysis) ---
+PCA Components (95% variance): 4
+Total explained variance: 0.9731
+PCA Accuracy: 0.9982
+
+--- LDA (Linear Discriminant Analysis) ---
+LDA Accuracy: 0.9789
+
+--- t-SNE ---
+t-SNE Accuracy: 0.8564
+
+--- UMAP ---
+UMAP Accuracy: 0.9432
+
+--- Original Features (No Reduction) ---
+Original Accuracy: 1.0000
+
+================================================================================
+PHASE 3: MSHDR PIPELINE
+================================================================================
+
+--- Stage 1: Feature Selection ---
+Top 8 features selected: ['id.resp_p', 'orig_ip_bytes', 'proto', 'id.orig_p', 'conn_state', 'orig_bytes', 'history', 'duration']
+
+--- Stage 2: Manifold Fusion ---
+  Isomap fitting on 1999-pt subsample...
+Fused representation shape: (37329, 6)
+
+--- Stage 3: Autoencoder Compression ---
+Training autoencoder...
+    Early stop at epoch 24
+Final reduced dimension: 3
+
+--- Stage 4: Ensemble Classifier ---
+MSHDR Accuracy: 0.9979
+
+================================================================================
+PHASE 3: MSHDR v2.0  (SCMAA Pipeline)
+================================================================================
+PyTorch available : True
+XGBoost available : True
+LightGBM available: True
+UMAP available    : True
+
+--- Stage 1: Adaptive Ensemble Feature Selection ---
+  Elbow k=5 | Selected: ['proto', 'conn_state', 'id.resp_p', 'id.orig_p', 'orig_ip_bytes']
+
+--- Stage 2: Fisher-Weighted Manifold Fusion ---
+    fitting pca...
+    fitting lda...
+    fitting isomap on subsample (2000 pts)...
+    fitting umap on subsample (2000 pts)...
+  Fisher scores: {'pca': '3.44', 'lda': '3.55', 'isomap': '3.28', 'umap': '2.06'}
+  Attention weights: {'pca': '0.311', 'lda': '0.347', 'isomap': '0.264', 'umap': '0.078'}
+  Fused representation: 8D
+
+--- Stage 3: Supervised Contrastive VAE ---
+  PyTorch device: cuda
+  Training SCVAE: up to 100 epochs (patience=15) ...
+    epoch   1/100  loss=7.3343  patience=0/15
+    epoch  10/100  loss=3.1415  patience=2/15
+    epoch  20/100  loss=3.2778  patience=12/15
+    Early stop at epoch 22
+  Latent representation: 4D
+
+--- Stage 4: Hierarchical Stacking Ensemble ---
+  MSHDR_v2 | Acc: 0.9979 | F1: 0.9983 | AUC: 1.0000
+
+✓ Results saved to results/dimensionality_reduction_results.csv
+
+*** Best Method: Original with Accuracy: 1.0000 ***
+
+================================================================================
+PHASE 4: GENERATING VISUALIZATIONS
+================================================================================
+✓ Performance comparison plot saved
+✓ Confusion matrix saved for MSHDR
+
+================================================================================
+FINAL SUMMARY
+================================================================================
+
+Dataset: SOC Network Intrusion Detection
+Total Samples: 46662
+Original Features: 14
+
+RESULTS COMPARISON:
+------------------
+
+PCA          | Acc: 0.9982 | Prec: 0.9985 | Rec: 0.9986 | F1: 0.9986 | AUC: 0.9995
+LDA          | Acc: 0.9789 | Prec: 0.9837 | Rec: 0.9829 | F1: 0.9833 | AUC: 0.9949
+t-SNE        | Acc: 0.8564 | Prec: 0.8937 | Rec: 0.8797 | F1: 0.8866 | AUC: 0.8635
+UMAP         | Acc: 0.9432 | Prec: 0.9426 | Rec: 0.9692 | F1: 0.9557 | AUC: 0.9472
+Original     | Acc: 1.0000 | Prec: 1.0000 | Rec: 1.0000 | F1: 1.0000 | AUC: 1.0000
+MSHDR        | Acc: 0.9979 | Prec: 0.9985 | Rec: 0.9981 | F1: 0.9983 | AUC: 0.9999
+MSHDR_v2     | Acc: 0.9979 | Prec: 0.9988 | Rec: 0.9978 | F1: 0.9983 | AUC: 1.0000
+
+KEY FINDINGS:
+-------------
+1. Best Performing Method: Original
+2. MSHDR (Novel Approach) Performance: 0.9978570663237972
+
+NOVEL CONTRIBUTIONS (MSHDR v2 / SCMAA):
+----------------------------------------
+1. Adaptive Ensemble Feature Selection (MI + ANOVA + RF importance, elbow cutoff)
+2. Fisher-Weighted Manifold Fusion     (J=tr(S_W^-1 S_B) drives attention weights)
+3. Supervised Contrastive VAE          (L=Recon+β(t)KL+SupCon+ClassHead)
+4. β-Annealing curriculum learning     (reconstruction first, then regularise)
+5. Hierarchical Stacking Ensemble      (OOF meta-learner, no fixed weights)
+
+Files Generated:
+- results/dimensionality_reduction_results.csv
+- visualizations/dimensionality_reduction_analysis.png
+- visualizations/feature_importance.png
+- visualizations/confusion_matrix_mshdr.png
+
+
+================================================================================
+EXECUTION COMPLETE
+================================================================================
