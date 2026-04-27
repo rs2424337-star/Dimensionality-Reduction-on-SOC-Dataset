@@ -223,3 +223,4 @@ final_cleaned_dataset.csv
 .lightning_studio
 docs
 vscode
+.local/
